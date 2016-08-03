@@ -34,6 +34,10 @@ func New(dbpath string) (*BoltService, error) {
 	return b, nil
 }
 
+func (b *BoltService) Close() error {
+	return b.db.Close()
+}
+
 func (b *BoltService) SelectBucket(name []byte) error {
 	err := b.db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(name)

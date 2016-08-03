@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer serv.Close()
 
 	roa.RegisterName("bolt", serv)
 	roa.Serve(lis)
