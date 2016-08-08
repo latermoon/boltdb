@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+// go run main.go localhost:3004 /tmp/bolt.db
 func main() {
 	if len(os.Args) < 3 {
 		log.Println("no dbpath specified.")
