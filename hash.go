@@ -10,7 +10,7 @@ import (
 // 	+key,h = ""
 // 	h[key]name = "latermoon"
 // 	h[key]age = "27"
-// 	h[key]sex = "M"
+// 	h[key]sex = "Male"
 type Hash struct {
 	bucket *Bucket
 	key    []byte
@@ -88,6 +88,20 @@ func (h *Hash) Remove(fields ...[]byte) error {
 	})
 }
 
+func (h *Hash) Drop() error {
+	return h.bucket.db.Batch(func(tx *bolt.Tx) error {
+		b := tx.Bucket(h.bucket.bucketName)
+		c := b.Cursor()
+		prefix := h.fieldPrefix()
+		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+			if err := b.Delete(k); err != nil {
+				return err
+			}
+		}
+		return b.Delete(h.rawKey())
+	})
+}
+
 // +key,h
 func (h *Hash) rawKey() []byte {
 	return rawKey(h.key, HASH)
@@ -100,7 +114,7 @@ func (h *Hash) fieldKey(field []byte) []byte {
 
 // h[key]
 func (h *Hash) fieldPrefix() []byte {
-	return bytes.Join([][]byte{[]byte{HASH}, SOK, h.key, EOK}, nil)
+	return bytes.Join([][]byte{[]byte{byte(HASH)}, SOK, h.key, EOK}, nil)
 }
 
 // split h[key]field into field

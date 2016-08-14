@@ -11,8 +11,9 @@ func TestHash(t *testing.T) {
 	db := newBoltDB(t)
 
 	var err error
+	key := []byte("user:100422:profile")
 	bucket, _ := db.Bucket([]byte("0"))
-	hash := bucket.Hash([]byte("user:100422:profile"))
+	hash := bucket.Hash(key)
 
 	ensure.Nil(t, hash.Set([]byte("name"), []byte("latermoon")))
 	ensure.Nil(t, hash.MSet([]byte("age"), []byte("28"), []byte("sex"), []byte("Male")))
@@ -35,9 +36,16 @@ func TestHash(t *testing.T) {
 	ensure.DeepEqual(t, keyVals[4], []byte("sex"))
 	ensure.DeepEqual(t, keyVals[5], []byte("Male"))
 
-	err = hash.Remove([]byte("name"), []byte("sex"), []byte("age"))
+	elemType, err := bucket.TypeOf(key)
 	ensure.Nil(t, err)
+	ensure.DeepEqual(t, elemType, HASH)
 
+	err = hash.Remove([]byte("name"), []byte("sex"))
+	ensure.Nil(t, err)
+	scan(db.db, []byte("0"), t)
+
+	err = hash.Drop()
+	ensure.Nil(t, err)
 	scan(db.db, []byte("0"), t)
 }
 
