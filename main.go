@@ -1,4 +1,4 @@
-package main
+package bolt
 
 import (
 	"github.com/latermoon/go.bolt/db"
