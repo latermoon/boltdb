@@ -2,6 +2,7 @@ package bolt
 
 import (
 	"bytes"
+
 	"github.com/boltdb/bolt"
 	// "errors"
 )
@@ -15,8 +16,8 @@ func (b *Bucket) Hash(key []byte) *Hash {
 	return &Hash{bucket: b, key: key}
 }
 
-func (b *Bucket) List(key []byte) {
-
+func (b *Bucket) List(key []byte) *List {
+	return &List{bucket: b, key: key}
 }
 
 func (b *Bucket) SortedSet(key []byte) {
@@ -63,3 +64,16 @@ func (b *Bucket) rawSet(key, value []byte) error {
 		return tx.Bucket(b.bucketName).Put(key, value)
 	})
 }
+
+// func (b *Bucket) rawDelete(keys ...[]byte) error {
+// 	return b.db.Batch(func(tx *bolt.Tx) error {
+// 		bucket := tx.Bucket(b.bucketName)
+// 		for _, key := range keys {
+// 			err := bucket.Delete(key)
+// 			if err != nil {
+// 				return err
+// 			}
+// 		}
+// 		return nil
+// 	})
+// }

@@ -1,8 +1,11 @@
 package bolt
 
 import (
-	"github.com/facebookgo/ensure"
 	"io/ioutil"
+	"log"
+
+	"github.com/boltdb/bolt"
+	"github.com/facebookgo/ensure"
 	// "log"
 	"path"
 	"testing"
@@ -36,4 +39,14 @@ func newBoltDB(t *testing.T) *DB {
 	ensure.Nil(t, err)
 
 	return db
+}
+
+func scan(db *bolt.DB, bucket []byte, t *testing.T) {
+	db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket(bucket).Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			log.Printf("%s  %s\n", k, v)
+		}
+		return nil
+	})
 }
