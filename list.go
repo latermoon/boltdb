@@ -17,6 +17,51 @@ type List struct {
 	key    []byte
 }
 
+func (l *List) Index(i int64) ([]byte, error) {
+	x, err := l.leftIndex()
+	if err != nil {
+		return nil, err
+	}
+	var val []byte
+	err = l.bucket.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(l.bucket.bucketName)
+		val = b.Get(l.indexKey(x + i))
+		return nil
+	})
+	return val, err
+}
+
+// Range enumerate value by index
+// <start> must >= 0
+// <stop> should equal to -1 or lager than <start>
+func (l *List) Range(start, stop int64, fn func(i int64, value []byte, quit *bool)) error {
+	if start < 0 || (stop != -1 && start > stop) {
+		return errors.New("bad start/stop index")
+	}
+	x, y, err := l.rangeIndex()
+	if err != nil {
+		return err
+	}
+	if stop == -1 {
+		stop = (y - x + 1) - 1 // (size) - 1
+	}
+	min := l.indexKey(x + int64(start))
+	max := l.indexKey(x + int64(stop))
+	return l.bucket.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(l.bucket.bucketName)
+		c := b.Cursor()
+		var i int64 // 0
+		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
+			quit := false
+			if fn(start+i, v, &quit); quit {
+				break
+			}
+			i++
+		}
+		return nil
+	})
+}
+
 // RPush ...
 func (l *List) RPush(vals ...[]byte) error {
 	x, y, err := l.rangeIndex()

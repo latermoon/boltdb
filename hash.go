@@ -3,6 +3,7 @@ package bolt
 import (
 	"bytes"
 	"errors"
+
 	"github.com/boltdb/bolt"
 )
 
@@ -17,7 +18,13 @@ type Hash struct {
 }
 
 func (h *Hash) Get(field []byte) ([]byte, error) {
-	return h.bucket.rawGet(h.fieldKey(field))
+	var val []byte
+	err := h.bucket.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(h.bucket.bucketName)
+		val = b.Get(h.fieldKey(field))
+		return nil
+	})
+	return val, err
 }
 
 func (h *Hash) MGet(fields ...[]byte) ([][]byte, error) {

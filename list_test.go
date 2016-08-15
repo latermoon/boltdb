@@ -10,6 +10,7 @@ func TestList(t *testing.T) {
 	db := newBoltDB(t)
 
 	var err error
+	var val []byte
 	key := []byte("userlist")
 	bucket, _ := db.Bucket([]byte("1"))
 	list := bucket.List(key)
@@ -24,7 +25,16 @@ func TestList(t *testing.T) {
 	ensure.Nil(t, err)
 	ensure.DeepEqual(t, size, int64(4))
 
-	val, err := list.LPop()
+	err = list.Range(0, 3, func(i int64, value []byte, quit *bool) {
+		// log.Println(i, string(value))
+	})
+	ensure.Nil(t, err)
+
+	val, err = list.Index(1)
+	ensure.Nil(t, err)
+	ensure.DeepEqual(t, val, []byte("b"))
+
+	val, err = list.LPop()
 	ensure.Nil(t, err)
 	ensure.DeepEqual(t, val, []byte("a"))
 

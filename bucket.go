@@ -39,41 +39,16 @@ func (b *Bucket) TypeOf(key []byte) (ElemType, error) {
 }
 
 func (b *Bucket) Get(key []byte) ([]byte, error) {
-	return b.rawGet(rawKey(key, STRING))
-}
-
-func (b *Bucket) Set(key, value []byte) error {
-	return b.rawSet(rawKey(key, STRING), value)
-}
-
-func (b *Bucket) Drop(key []byte) {
-
-}
-
-func (b *Bucket) rawGet(key []byte) ([]byte, error) {
 	var val []byte
 	err := b.db.View(func(tx *bolt.Tx) error {
-		val = tx.Bucket(b.bucketName).Get(key)
+		val = tx.Bucket(b.bucketName).Get(rawKey(key, STRING))
 		return nil
 	})
 	return val, err
 }
 
-func (b *Bucket) rawSet(key, value []byte) error {
+func (b *Bucket) Set(key, value []byte) error {
 	return b.db.Batch(func(tx *bolt.Tx) error {
-		return tx.Bucket(b.bucketName).Put(key, value)
+		return tx.Bucket(b.bucketName).Put(rawKey(key, STRING), value)
 	})
 }
-
-// func (b *Bucket) rawDelete(keys ...[]byte) error {
-// 	return b.db.Batch(func(tx *bolt.Tx) error {
-// 		bucket := tx.Bucket(b.bucketName)
-// 		for _, key := range keys {
-// 			err := bucket.Delete(key)
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 		return nil
-// 	})
-// }

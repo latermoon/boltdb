@@ -1,8 +1,9 @@
 package bolt
 
 import (
-	"github.com/boltdb/bolt"
 	"sync"
+
+	"github.com/boltdb/bolt"
 )
 
 // New ...
