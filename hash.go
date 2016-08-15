@@ -41,14 +41,13 @@ func (h *Hash) MGet(fields ...[]byte) ([][]byte, error) {
 }
 
 // GetAll ...
-// TODO: add seek & max return count
-func (h *Hash) GetAll() ([][]byte, error) {
-	keyVals := make([][]byte, 0)
+func (h *Hash) GetAll() (map[string][]byte, error) {
+	keyVals := map[string][]byte{}
 	err := h.bucket.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(h.bucket.bucketName).Cursor()
 		prefix := h.fieldPrefix()
 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			keyVals = append(keyVals, h.fieldInKey(k), v)
+			keyVals[string(h.fieldInKey(k))] = v
 		}
 		return nil
 	})
@@ -84,14 +83,12 @@ func (h *Hash) Remove(fields ...[]byte) error {
 				return err
 			}
 		}
-		// check if removeAll or not
+		// clean up
 		prefix := h.fieldPrefix()
-		k, _ := b.Cursor().Seek(prefix)
-		if !bytes.HasPrefix(k, prefix) {
+		if k, _ := b.Cursor().Seek(prefix); !bytes.HasPrefix(k, prefix) {
 			return b.Delete(h.rawKey())
-		} else {
-			return nil
 		}
+		return nil
 	})
 }
 

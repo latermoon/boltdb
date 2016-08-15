@@ -20,8 +20,8 @@ func (b *Bucket) List(key []byte) *List {
 	return &List{bucket: b, key: key}
 }
 
-func (b *Bucket) SortedSet(key []byte) {
-
+func (b *Bucket) SortedSet(key []byte) *SortedSet {
+	return &SortedSet{bucket: b, key: key}
 }
 
 func (b *Bucket) TypeOf(key []byte) (ElemType, error) {

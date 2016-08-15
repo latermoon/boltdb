@@ -28,12 +28,9 @@ func TestHash(t *testing.T) {
 
 	keyVals, err := hash.GetAll()
 	ensure.Nil(t, err)
-	ensure.DeepEqual(t, keyVals[0], []byte("age"))
-	ensure.DeepEqual(t, keyVals[1], []byte("28"))
-	ensure.DeepEqual(t, keyVals[2], []byte("name"))
-	ensure.DeepEqual(t, keyVals[3], []byte("latermoon"))
-	ensure.DeepEqual(t, keyVals[4], []byte("sex"))
-	ensure.DeepEqual(t, keyVals[5], []byte("Male"))
+	ensure.DeepEqual(t, keyVals["age"], []byte("28"))
+	ensure.DeepEqual(t, keyVals["name"], []byte("latermoon"))
+	ensure.DeepEqual(t, keyVals["sex"], []byte("Male"))
 
 	elemType, err := bucket.TypeOf(key)
 	ensure.Nil(t, err)

@@ -11,7 +11,7 @@ func TestList(t *testing.T) {
 
 	var err error
 	var val []byte
-	key := []byte("userlist")
+	key := []byte("letter")
 	bucket, _ := db.Bucket([]byte("1"))
 	list := bucket.List(key)
 
