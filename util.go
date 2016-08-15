@@ -3,8 +3,11 @@ package bolt
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"math"
 )
+
+var ErrInvalidKeyFormat = errors.New("invalid key format includes +[],")
 
 // Raw key:
 // +key,type = value
@@ -52,13 +55,27 @@ func rawKey(key []byte, t ElemType) []byte {
 	return bytes.Join([][]byte{KEY, key, SEP, []byte{byte(t)}}, nil)
 }
 
-// 使用二进制存储整形
-func Int64ToBytes(i int64) []byte {
-	buf := make([]byte, 8)
-	binary.BigEndian.PutUint64(buf, uint64(i))
-	return buf
+func verifyKey(key []byte) error {
+	err := ErrInvalidKeyFormat
+	if bytes.Contains(key, SEP) {
+		return err
+	} else if bytes.Contains(key, KEY) {
+		return err
+	} else if bytes.Contains(key, SOK) {
+		return err
+	} else if bytes.Contains(key, EOK) {
+		return err
+	}
+	return nil
 }
 
-func BytesToInt64(buf []byte) int64 {
-	return int64(binary.BigEndian.Uint64(buf))
+// itob returns an 8-byte big endian representation of v.
+func itob(i int64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(i))
+	return b
+}
+
+func btoi(b []byte) int64 {
+	return int64(binary.BigEndian.Uint64(b))
 }

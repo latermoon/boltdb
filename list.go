@@ -164,11 +164,11 @@ func (l *List) indexKey(i int64) []byte {
 	if i >= 0 {
 		sign = []byte{1}
 	}
-	return bytes.Join([][]byte{l.keyPrefix(), sign, Int64ToBytes(i)}, nil)
+	return bytes.Join([][]byte{l.keyPrefix(), sign, itob(i)}, nil)
 }
 
 // split l[key]index into index
 func (l *List) indexInKey(key []byte) int64 {
 	idxbuf := bytes.TrimPrefix(key, l.keyPrefix())
-	return BytesToInt64(idxbuf[1:]) // skip sign "0/1"
+	return btoi(idxbuf[1:]) // skip sign "0/1"
 }
