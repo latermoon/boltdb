@@ -13,7 +13,8 @@ func TestSortedSet(t *testing.T) {
 	// var val []byte
 	key := []byte("users")
 	bucket, _ := db.Bucket([]byte("2"))
-	zset := bucket.SortedSet(key)
+	zset, err := bucket.SortedSet(key)
+	ensure.Nil(t, err)
 
 	added, err := zset.Add([]byte("1"), []byte("a"), []byte("2"), []byte("b"), []byte("3"), []byte("c"))
 	ensure.Nil(t, err)

@@ -23,8 +23,7 @@ func (l *List) Index(i int64) ([]byte, error) {
 		return nil, err
 	}
 	var val []byte
-	err = l.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(l.bucket.bucketName)
+	err = l.bucket.View(func(b *bolt.Bucket) error {
 		val = b.Get(l.indexKey(x + i))
 		return nil
 	})
@@ -47,8 +46,7 @@ func (l *List) Range(start, stop int64, fn func(i int64, value []byte, quit *boo
 	}
 	min := l.indexKey(x + int64(start))
 	max := l.indexKey(x + int64(stop))
-	return l.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(l.bucket.bucketName)
+	return l.bucket.View(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		var i int64 // 0
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
@@ -68,8 +66,7 @@ func (l *List) RPush(vals ...[]byte) error {
 	if err != nil {
 		return err
 	}
-	err = l.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(l.bucket.bucketName)
+	err = l.bucket.Batch(func(b *bolt.Bucket) error {
 		if x == 0 && y == -1 {
 			b.Put(l.rawKey(), nil)
 		}
@@ -87,8 +84,7 @@ func (l *List) LPush(vals ...[]byte) error {
 	if err != nil {
 		return err
 	}
-	err = l.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(l.bucket.bucketName)
+	err = l.bucket.Batch(func(b *bolt.Bucket) error {
 		if x == 0 && y == -1 {
 			b.Put(l.rawKey(), nil)
 		}
@@ -131,8 +127,7 @@ func (l *List) pop(left bool) ([]byte, error) {
 	}
 
 	var val []byte
-	err = l.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(l.bucket.bucketName)
+	err = l.bucket.Batch(func(b *bolt.Bucket) error {
 		val = b.Get(idxkey)
 		if err := b.Delete(idxkey); err != nil {
 			return err
@@ -166,8 +161,8 @@ func (l *List) rangeIndex() (int64, int64, error) {
 
 func (l *List) leftIndex() (int64, error) {
 	idx := int64(0) // default 0
-	err := l.bucket.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket(l.bucket.bucketName).Cursor()
+	err := l.bucket.View(func(b *bolt.Bucket) error {
+		c := b.Cursor()
 		prefix := l.keyPrefix()
 		if k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix) {
 			idx = l.indexInKey(k)
@@ -179,8 +174,8 @@ func (l *List) leftIndex() (int64, error) {
 
 func (l *List) rightIndex() (int64, error) {
 	idx := int64(-1) // default -1
-	err := l.bucket.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket(l.bucket.bucketName).Cursor()
+	err := l.bucket.View(func(b *bolt.Bucket) error {
+		c := b.Cursor()
 		prefix := l.keyPrefix()
 		seek := append(prefix, MAXBYTE)
 		k, _ := c.Seek(seek)

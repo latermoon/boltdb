@@ -22,8 +22,7 @@ func (s *SortedSet) Add(scoreMembers ...[]byte) (int, error) {
 		return 0, errors.New("invalid score/member pairs")
 	}
 	added := 0
-	err := s.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(s.bucket.bucketName)
+	err := s.bucket.Batch(func(b *bolt.Bucket) error {
 		for i := 0; i < count; i += 2 {
 			score, member := scoreMembers[i], scoreMembers[i+1]
 			skey, mkey := s.scoreKey(score, member), s.memberKey(member)
@@ -48,8 +47,7 @@ func (s *SortedSet) Add(scoreMembers ...[]byte) (int, error) {
 
 func (s SortedSet) Score(member []byte) ([]byte, error) {
 	var score []byte
-	err := s.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(s.bucket.bucketName)
+	err := s.bucket.View(func(b *bolt.Bucket) error {
 		score = b.Get(s.memberKey(member))
 		return nil
 	})
@@ -58,8 +56,7 @@ func (s SortedSet) Score(member []byte) ([]byte, error) {
 
 func (s *SortedSet) Remove(members ...[]byte) (int, error) {
 	removed := 0 // not including non existing members
-	err := s.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(s.bucket.bucketName)
+	err := s.bucket.Batch(func(b *bolt.Bucket) error {
 		for _, member := range members {
 			score := b.Get(s.memberKey(member))
 			if score == nil {
@@ -86,8 +83,7 @@ func (s *SortedSet) Remove(members ...[]byte) (int, error) {
 func (s *SortedSet) RevRangeByScore(fr, to []byte, fn func(i int64, score, member []byte, quit *bool)) error {
 	max, min := s.scorePrefix(fr), s.scorePrefix(to)
 	max = append(max, MAXBYTE)
-	return s.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(s.bucket.bucketName)
+	return s.bucket.View(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		var i int64 // 0
 		k, _ := c.Seek(max)
@@ -108,8 +104,7 @@ func (s *SortedSet) RevRangeByScore(fr, to []byte, fn func(i int64, score, membe
 
 func (s *SortedSet) RangeByScore(fr, to []byte, fn func(i int64, score, member []byte, quit *bool)) error {
 	min, max := s.scorePrefix(fr), s.scorePrefix(to)
-	return s.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(s.bucket.bucketName)
+	return s.bucket.View(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		var i int64 // 0
 		for k, _ := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, _ = c.Next() {

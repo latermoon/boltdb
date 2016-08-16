@@ -13,7 +13,8 @@ func TestList(t *testing.T) {
 	var val []byte
 	key := []byte("letter")
 	bucket, _ := db.Bucket([]byte("1"))
-	list := bucket.List(key)
+	list, err := bucket.List(key)
+	ensure.Nil(t, err)
 
 	// insert a, b, c, d
 	err = list.RPush([]byte("c"), []byte("d"))

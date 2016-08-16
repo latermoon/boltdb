@@ -1,6 +1,5 @@
 # go.bolt
-go.roa wrapper for boltdb
-
+```
 import (
 	"github.com/latermoon/go.bolt"
 	"github.com/latermoon/go.bolt/score"
@@ -15,12 +14,14 @@ db.List("acl:group:rules").Range(0, 2)
 db.SortedSet("userlist").Add("score", "member", ...)
 db.TypeOf("key")
 
+// http://www.jianshu.com/p/edb0a016e477
 score := bolt.FloatScore(100.35)
 score.Incr(100.35) 
 zset.Add(score.Bytes(), "100422")
 
 score := zset.Score("100422")
 i := score.Int()
+```
 
 
 

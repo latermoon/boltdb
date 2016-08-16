@@ -19,8 +19,7 @@ type Hash struct {
 
 func (h *Hash) Get(field []byte) ([]byte, error) {
 	var val []byte
-	err := h.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(h.bucket.bucketName)
+	err := h.bucket.View(func(b *bolt.Bucket) error {
 		val = b.Get(h.fieldKey(field))
 		return nil
 	})
@@ -29,8 +28,7 @@ func (h *Hash) Get(field []byte) ([]byte, error) {
 
 func (h *Hash) MGet(fields ...[]byte) ([][]byte, error) {
 	vals := make([][]byte, 0, len(fields))
-	err := h.bucket.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(h.bucket.bucketName)
+	err := h.bucket.View(func(b *bolt.Bucket) error {
 		for _, field := range fields {
 			val := b.Get(h.fieldKey(field))
 			vals = append(vals, val)
@@ -43,8 +41,8 @@ func (h *Hash) MGet(fields ...[]byte) ([][]byte, error) {
 // GetAll ...
 func (h *Hash) GetAll() (map[string][]byte, error) {
 	keyVals := map[string][]byte{}
-	err := h.bucket.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket(h.bucket.bucketName).Cursor()
+	err := h.bucket.View(func(b *bolt.Bucket) error {
+		c := b.Cursor()
 		prefix := h.fieldPrefix()
 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			keyVals[string(h.fieldInKey(k))] = v
@@ -63,21 +61,19 @@ func (h *Hash) MSet(fieldVals ...[]byte) error {
 		return errors.New("invalid field value pairs")
 	}
 
-	return h.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(h.bucket.bucketName)
+	return h.bucket.Batch(func(b *bolt.Bucket) error {
 		for i := 0; i < len(fieldVals); i += 2 {
 			field, val := fieldVals[i], fieldVals[i+1]
 			if err := b.Put(h.fieldKey(field), val); err != nil {
 				return err
 			}
 		}
-		return tx.Bucket(h.bucket.bucketName).Put(h.rawKey(), nil)
+		return b.Put(h.rawKey(), nil)
 	})
 }
 
 func (h *Hash) Remove(fields ...[]byte) error {
-	return h.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(h.bucket.bucketName)
+	return h.bucket.Batch(func(b *bolt.Bucket) error {
 		for _, field := range fields {
 			if err := b.Delete(h.fieldKey(field)); err != nil {
 				return err
@@ -93,8 +89,7 @@ func (h *Hash) Remove(fields ...[]byte) error {
 }
 
 func (h *Hash) Drop() error {
-	return h.bucket.db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket(h.bucket.bucketName)
+	return h.bucket.Batch(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		prefix := h.fieldPrefix()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {

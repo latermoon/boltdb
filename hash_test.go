@@ -12,7 +12,8 @@ func TestHash(t *testing.T) {
 	var err error
 	key := []byte("user:100422:profile")
 	bucket, _ := db.Bucket([]byte("0"))
-	hash := bucket.Hash(key)
+	hash, err := bucket.Hash(key)
+	ensure.Nil(t, err)
 
 	ensure.Nil(t, hash.Set([]byte("name"), []byte("latermoon")))
 	ensure.Nil(t, hash.MSet([]byte("age"), []byte("28"), []byte("sex"), []byte("Male")))
