@@ -8,8 +8,8 @@ import (
 
 func TestHash(t *testing.T) {
 	db := newBoltDB(t)
+	defer db.Close()
 
-	var err error
 	key := []byte("user:100422:profile")
 	bucket, _ := db.Bucket([]byte("0"))
 	hash, err := bucket.Hash(key)

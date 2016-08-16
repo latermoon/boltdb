@@ -8,8 +8,8 @@ import (
 
 func TestList(t *testing.T) {
 	db := newBoltDB(t)
+	defer db.Close()
 
-	var err error
 	var val []byte
 	key := []byte("letter")
 	bucket, _ := db.Bucket([]byte("1"))

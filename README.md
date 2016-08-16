@@ -1,9 +1,18 @@
-# go.bolt
+# go.boltdb
+
 ```
 import (
-	"github.com/latermoon/go.bolt"
-	"github.com/latermoon/go.bolt/score"
+	"github.com/boltdb/bolt"
+	"github.com/latermoon/boltdb"
 )
+
+func main() {
+	db, err := boltdb.Open("my.db", 0600, nil)
+	defer db.Close()
+
+	db := boltdb.New(bdb)
+	db.TypeOf(Key)
+}
 
 db, err := bolt.New(dbpath)
 db.Set("version", "0.1.3")

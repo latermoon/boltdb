@@ -68,6 +68,9 @@ func (b *Bucket) Get(key []byte) ([]byte, error) {
 }
 
 func (b *Bucket) Set(key, value []byte) error {
+	if err := b.ensureType(key, STRING); err != nil {
+		return err
+	}
 	return b.Update(func(bucket *bolt.Bucket) error {
 		return bucket.Put(rawKey(key, STRING), value)
 	})

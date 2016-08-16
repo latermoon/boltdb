@@ -6,39 +6,46 @@ import (
 	"github.com/facebookgo/ensure"
 )
 
+func TestIntScore(t *testing.T) {
+	a, b, c := IntScore(-1), IntScore(0), IntScore(1)
+	ensure.DeepEqual(t, ScoreInt(a), int64(-1))
+	ensure.DeepEqual(t, ScoreInt(b), int64(0))
+	ensure.DeepEqual(t, ScoreInt(c), int64(1))
+}
+
 func TestSortedSet(t *testing.T) {
 	db := newBoltDB(t)
+	defer db.Close()
 
-	var err error
 	// var val []byte
 	key := []byte("users")
 	bucket, _ := db.Bucket([]byte("2"))
 	zset, err := bucket.SortedSet(key)
 	ensure.Nil(t, err)
 
-	added, err := zset.Add([]byte("1"), []byte("a"), []byte("2"), []byte("b"), []byte("3"), []byte("c"))
+	added, err := zset.Add(IntScore(-1), []byte("a"), IntScore(0), []byte("b"), IntScore(1), []byte("c"))
 	ensure.Nil(t, err)
 	ensure.DeepEqual(t, added, 3)
 
 	score, err := zset.Score([]byte("b"))
 	ensure.Nil(t, err)
-	ensure.DeepEqual(t, score, []byte("2"))
+	ensure.DeepEqual(t, ScoreInt(score), int64(0))
 
-	added, err = zset.Add([]byte("4"), []byte("d"))
+	added, err = zset.Add(IntScore(100), []byte("d"))
 	ensure.Nil(t, err)
 	ensure.DeepEqual(t, added, 1)
 
-	added, err = zset.Add([]byte("200"), []byte("b"))
+	added, err = zset.Add(IntScore(200), []byte("b"))
 	ensure.Nil(t, err)
 	ensure.DeepEqual(t, added, 0) // no new record(s)
 
-	err = zset.RangeByScore([]byte("1"), []byte("z"), func(i int64, score, member []byte, quit *bool) {
-		// log.Println(i, string(score), string(member))
+	err = zset.RangeByScore(IntScore(-1), IntScore(200), func(i int64, score Score, member []byte, quit *bool) {
+		t.Log("Range", i, ScoreInt(score), string(member))
 	})
 	ensure.Nil(t, err)
 
-	err = zset.RevRangeByScore([]byte("3"), []byte("1"), func(i int64, score, member []byte, quit *bool) {
-		// log.Println(i, string(score), string(member))
+	err = zset.RevRangeByScore(IntScore(100), IntScore(-1), func(i int64, score Score, member []byte, quit *bool) {
+		t.Log("RevRange", i, ScoreInt(score), string(member))
 	})
 	ensure.Nil(t, err)
 

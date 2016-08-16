@@ -8,6 +8,7 @@ import (
 
 func TestBucket(t *testing.T) {
 	db := newBoltDB(t)
+	defer db.Close()
 
 	b, err := db.Bucket([]byte("0"))
 	ensure.Nil(t, err)

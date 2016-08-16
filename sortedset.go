@@ -16,6 +16,8 @@ type SortedSet struct {
 	key    []byte
 }
 
+// Add add score & member pairs
+// SortedSet.Add(Score, []byte, Score, []byte ...)
 func (s *SortedSet) Add(scoreMembers ...[]byte) (int, error) {
 	count := len(scoreMembers)
 	if count < 2 || count%2 != 0 {
@@ -45,7 +47,7 @@ func (s *SortedSet) Add(scoreMembers ...[]byte) (int, error) {
 	return added, err
 }
 
-func (s SortedSet) Score(member []byte) ([]byte, error) {
+func (s SortedSet) Score(member []byte) (Score, error) {
 	var score []byte
 	err := s.bucket.View(func(b *bolt.Bucket) error {
 		score = b.Get(s.memberKey(member))
@@ -80,9 +82,11 @@ func (s *SortedSet) Remove(members ...[]byte) (int, error) {
 	return removed, err
 }
 
-func (s *SortedSet) RevRangeByScore(fr, to []byte, fn func(i int64, score, member []byte, quit *bool)) error {
-	max, min := s.scorePrefix(fr), s.scorePrefix(to)
-	max = append(max, MAXBYTE)
+// RevRangeByScore ...
+// <fr> is larger than <to>
+func (s *SortedSet) RevRangeByScore(fr, to Score, fn func(i int64, score Score, member []byte, quit *bool)) error {
+	min := s.scorePrefix(to)
+	max := append(s.scorePrefix(fr), MAXBYTE)
 	return s.bucket.View(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		var i int64 // 0
@@ -102,8 +106,11 @@ func (s *SortedSet) RevRangeByScore(fr, to []byte, fn func(i int64, score, membe
 	})
 }
 
-func (s *SortedSet) RangeByScore(fr, to []byte, fn func(i int64, score, member []byte, quit *bool)) error {
-	min, max := s.scorePrefix(fr), s.scorePrefix(to)
+// RangeByScore ...
+// <fr> is less than <to>
+func (s *SortedSet) RangeByScore(fr, to Score, fn func(i int64, score Score, member []byte, quit *bool)) error {
+	min := s.scorePrefix(fr)
+	max := append(s.scorePrefix(to), MAXBYTE)
 	return s.bucket.View(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		var i int64 // 0
