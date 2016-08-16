@@ -22,7 +22,7 @@ func (s *SortedSet) Add(scoreMembers ...[]byte) (int, error) {
 		return 0, errors.New("invalid score/member pairs")
 	}
 	added := 0
-	err := s.bucket.Batch(func(b *bolt.Bucket) error {
+	err := s.bucket.Update(func(b *bolt.Bucket) error {
 		for i := 0; i < count; i += 2 {
 			score, member := scoreMembers[i], scoreMembers[i+1]
 			skey, mkey := s.scoreKey(score, member), s.memberKey(member)
@@ -56,7 +56,7 @@ func (s SortedSet) Score(member []byte) ([]byte, error) {
 
 func (s *SortedSet) Remove(members ...[]byte) (int, error) {
 	removed := 0 // not including non existing members
-	err := s.bucket.Batch(func(b *bolt.Bucket) error {
+	err := s.bucket.Update(func(b *bolt.Bucket) error {
 		for _, member := range members {
 			score := b.Get(s.memberKey(member))
 			if score == nil {

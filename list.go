@@ -66,7 +66,7 @@ func (l *List) RPush(vals ...[]byte) error {
 	if err != nil {
 		return err
 	}
-	err = l.bucket.Batch(func(b *bolt.Bucket) error {
+	err = l.bucket.Update(func(b *bolt.Bucket) error {
 		if x == 0 && y == -1 {
 			b.Put(l.rawKey(), nil)
 		}
@@ -84,7 +84,7 @@ func (l *List) LPush(vals ...[]byte) error {
 	if err != nil {
 		return err
 	}
-	err = l.bucket.Batch(func(b *bolt.Bucket) error {
+	err = l.bucket.Update(func(b *bolt.Bucket) error {
 		if x == 0 && y == -1 {
 			b.Put(l.rawKey(), nil)
 		}
@@ -127,7 +127,7 @@ func (l *List) pop(left bool) ([]byte, error) {
 	}
 
 	var val []byte
-	err = l.bucket.Batch(func(b *bolt.Bucket) error {
+	err = l.bucket.Update(func(b *bolt.Bucket) error {
 		val = b.Get(idxkey)
 		if err := b.Delete(idxkey); err != nil {
 			return err

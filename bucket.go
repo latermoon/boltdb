@@ -68,7 +68,7 @@ func (b *Bucket) Get(key []byte) ([]byte, error) {
 }
 
 func (b *Bucket) Set(key, value []byte) error {
-	return b.Batch(func(bucket *bolt.Bucket) error {
+	return b.Update(func(bucket *bolt.Bucket) error {
 		return bucket.Put(rawKey(key, STRING), value)
 	})
 }
@@ -80,9 +80,9 @@ func (b *Bucket) View(fn func(*bolt.Bucket) error) error {
 	})
 }
 
-// Batch ...
-func (b *Bucket) Batch(fn func(*bolt.Bucket) error) error {
-	return b.db.Batch(func(tx *bolt.Tx) error {
+// Update make db.View easy to use
+func (b *Bucket) Update(fn func(*bolt.Bucket) error) error {
+	return b.db.Update(func(tx *bolt.Tx) error {
 		return fn(tx.Bucket(b.bucketName))
 	})
 }

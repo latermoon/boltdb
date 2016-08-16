@@ -61,7 +61,7 @@ func (h *Hash) MSet(fieldVals ...[]byte) error {
 		return errors.New("invalid field value pairs")
 	}
 
-	return h.bucket.Batch(func(b *bolt.Bucket) error {
+	return h.bucket.Update(func(b *bolt.Bucket) error {
 		for i := 0; i < len(fieldVals); i += 2 {
 			field, val := fieldVals[i], fieldVals[i+1]
 			if err := b.Put(h.fieldKey(field), val); err != nil {
@@ -73,7 +73,7 @@ func (h *Hash) MSet(fieldVals ...[]byte) error {
 }
 
 func (h *Hash) Remove(fields ...[]byte) error {
-	return h.bucket.Batch(func(b *bolt.Bucket) error {
+	return h.bucket.Update(func(b *bolt.Bucket) error {
 		for _, field := range fields {
 			if err := b.Delete(h.fieldKey(field)); err != nil {
 				return err
@@ -89,7 +89,7 @@ func (h *Hash) Remove(fields ...[]byte) error {
 }
 
 func (h *Hash) Drop() error {
-	return h.bucket.Batch(func(b *bolt.Bucket) error {
+	return h.bucket.Update(func(b *bolt.Bucket) error {
 		c := b.Cursor()
 		prefix := h.fieldPrefix()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
