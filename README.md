@@ -1,5 +1,7 @@
 # go.boltdb
 
+> go get github.com/latermoon/boltdb
+
 ```
 import (
 	"github.com/latermoon/boltdb"
